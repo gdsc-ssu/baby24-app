@@ -1,0 +1,16 @@
+flutter_native_splash:
+  color: "#2196F3"
+  image: "assets/splash/title.png"
+  branding: "assets/splash/title.png"
+  color_dark: "#121212"
+  image_dark: "assets/splash/title.png"
+  branding_dark: "assets/splash/title.png"
+  android_12:
+    color: "#2196F3"
+    image: "assets/splash/title.png"
+    color_dark: "#121212"
+    image_dark: "assets/splash/title.png"
+  web: false
+  ios: true
+  android: true
+  flavor: staging

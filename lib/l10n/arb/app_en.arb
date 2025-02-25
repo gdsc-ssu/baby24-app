@@ -1,0 +1,79 @@
+{
+    "@@locale": "en",
+    "counterAppBarTitle": "Counter",
+    "@counterAppBarTitle": {
+        "description": "Text shown in the AppBar of the Counter Page"
+    },
+    "homeVersusText": "VS",
+    "@homeVersusText": {
+        "description": "VS text displayed between images on the home screen"
+    },
+    "homeStartButtonText": "Start",
+    "@homeStartButtonText": {
+        "description": "Start button text on the home screen"
+    },
+    "homeShuffleTooltip": "Shuffle randomly",
+    "@homeShuffleTooltip": {
+        "description": "Tooltip for the random shuffle button on the home screen"
+    },
+    "homeEmptyGamesText": "No games available.",
+    "@homeEmptyGamesText": {
+        "description": "Text displayed when there are no games on the home screen"
+    },
+    "homeInfiniteModeText": "Infinite Mode",
+    "@homeInfiniteModeText": {
+        "description": "Infinite mode text on the home screen"
+    },
+    "homeNormalModeText": "Normal Mode",
+    "@homeNormalModeText": {
+        "description": "Normal mode text on the home screen"
+    },
+    "homeInfiniteModeHelperTitle": "Try Infinite Mode",
+    "@homeInfiniteModeHelperTitle": {
+        "description": "Title for infinite mode helper"
+    },
+    "homeInfiniteModeHelperDescription": "Turn on the switch to swipe and play games continuously!",
+    "@homeInfiniteModeHelperDescription": {
+        "description": "Description for infinite mode helper"
+    },
+    "homePopularGamesTitle": "Popular Games",
+    "@homePopularGamesTitle": {
+        "description": "Popular games section title"
+    },
+    "homeAllGamesTitle": "All Games",
+    "@homeAllGamesTitle": {
+        "description": "All games section title"
+    },
+    "homeRankText": "#{rank}",
+    "@homeRankText": {
+        "description": "Game rank text",
+        "placeholders": {
+            "rank": {
+                "type": "int",
+                "example": "1"
+            }
+        }
+    },
+    "homeParticipantsText": "{count} participants",
+    "@homeParticipantsText": {
+        "description": "Participants count text",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "100"
+            }
+        }
+    },
+    "homeSwipeUpText": "Swipe up for next game",
+    "@homeSwipeUpText": {
+        "description": "Swipe up guide text"
+    },
+    "gameNotFoundText": "Game not found.",
+    "@gameNotFoundText": {
+        "description": "Text displayed when game is not found"
+    },
+    "gameImplementationText": "Game screen coming soon",
+    "@gameImplementationText": {
+        "description": "Game implementation pending text"
+    }
+}

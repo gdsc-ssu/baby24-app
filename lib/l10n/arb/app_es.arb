@@ -1,0 +1,79 @@
+{
+    "@@locale": "es",
+    "counterAppBarTitle": "Contador",
+    "@counterAppBarTitle": {
+        "description": "Texto mostrado en la AppBar de la página del contador"
+    },
+    "homeVersusText": "VS",
+    "@homeVersusText": {
+        "description": "Texto VS mostrado entre imágenes en la pantalla de inicio"
+    },
+    "homeStartButtonText": "Comenzar",
+    "@homeStartButtonText": {
+        "description": "Texto del botón de inicio en la pantalla de inicio"
+    },
+    "homeShuffleTooltip": "Mezclar aleatoriamente",
+    "@homeShuffleTooltip": {
+        "description": "Tooltip para el botón de mezcla aleatoria en la pantalla de inicio"
+    },
+    "homeEmptyGamesText": "No hay juegos disponibles.",
+    "@homeEmptyGamesText": {
+        "description": "Texto que se muestra cuando no hay juegos en la pantalla de inicio"
+    },
+    "homeInfiniteModeText": "Modo Infinito",
+    "@homeInfiniteModeText": {
+        "description": "Texto del modo infinito en la pantalla de inicio"
+    },
+    "homeNormalModeText": "Modo Normal",
+    "@homeNormalModeText": {
+        "description": "Texto del modo normal en la pantalla de inicio"
+    },
+    "homeInfiniteModeHelperTitle": "Prueba el Modo Infinito",
+    "@homeInfiniteModeHelperTitle": {
+        "description": "Título para el ayudante del modo infinito"
+    },
+    "homeInfiniteModeHelperDescription": "¡Activa el interruptor para deslizar y jugar juegos continuamente!",
+    "@homeInfiniteModeHelperDescription": {
+        "description": "Descripción para el ayudante del modo infinito"
+    },
+    "homePopularGamesTitle": "Juegos Populares",
+    "@homePopularGamesTitle": {
+        "description": "Título de la sección de juegos populares"
+    },
+    "homeAllGamesTitle": "Todos los Juegos",
+    "@homeAllGamesTitle": {
+        "description": "Título de la sección de todos los juegos"
+    },
+    "homeRankText": "#{rank}",
+    "@homeRankText": {
+        "description": "Texto del rango del juego",
+        "placeholders": {
+            "rank": {
+                "type": "int",
+                "example": "1"
+            }
+        }
+    },
+    "homeParticipantsText": "{count} participantes",
+    "@homeParticipantsText": {
+        "description": "Texto del recuento de participantes",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "100"
+            }
+        }
+    },
+    "homeSwipeUpText": "Desliza hacia arriba para el siguiente juego",
+    "@homeSwipeUpText": {
+        "description": "Texto guía para deslizar hacia arriba"
+    },
+    "gameNotFoundText": "Juego no encontrado.",
+    "@gameNotFoundText": {
+        "description": "Texto que se muestra cuando no se encuentra el juego"
+    },
+    "gameImplementationText": "Pantalla de juego próximamente",
+    "@gameImplementationText": {
+        "description": "Texto de implementación pendiente del juego"
+    }
+}
