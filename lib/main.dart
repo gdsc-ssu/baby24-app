@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_vertexai/firebase_vertexai.dart';
+import "firebase_options.dart";
 import 'package:get/get.dart';
-import 'package:baby24_app/src/controller/notification_controller.dart';
-import 'package:baby24_app/src/pages/role_selection_page.dart';
-import 'package:baby24_app/src/utils/app_mode.dart';
-// 나중에 사용할 import들
-/*
-import 'package:baby24_app/src/pages/message_page.dart';
-import 'package:baby24_app/src/utils/role_handler.dart';
-*/
+import 'package:baby24_io_app/src/controller/notification_controller.dart';
+import 'package:baby24_io_app/src/pages/role_selection_page.dart';
+import 'package:baby24_io_app/src/pages/main_screen.dart';
+import 'package:baby24_io_app/src/utils/app_mode.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  
-  // NotificationController 초기화를 여기서 실행
-  Get.put(NotificationController(), permanent: true);
-  
-  // AppMode 컨트롤러 초기화
-  Get.put(AppMode());
-  
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    Get.put(NotificationController(), permanent: true);
+    Get.put(AppMode());
+    await Permission.camera.request();
+    await Permission.microphone.request();
+  } catch (e, stack) {
+    print('초기화 에러: $e');
+    print(stack);
+    // 필요하다면 에러 화면을 띄우는 로직 추가
+  }
   runApp(const MyApp());
 }
 
@@ -29,9 +31,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Baby24 App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const RoleSelectionPage(),
+      title: 'Baby24',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: false,
+      ),
+      home: const MainScreen(),
     );
   }
 }

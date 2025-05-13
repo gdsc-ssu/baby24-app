@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:baby24_app/src/controller/notification_controller.dart';
-import 'package:baby24_app/src/page/message_page.dart';
+import 'package:baby24_io_app/src/controller/notification_controller.dart';
+import 'package:baby24_io_app/src/pages/message_page.dart';
 import 'package:get/get.dart';
 
 class App extends StatelessWidget {
