@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:baby24_io_app/src/services/signalling.service.dart';
 import 'package:baby24_io_app/src/services/ai_service.dart';
 import 'dart:io' show Platform;
@@ -15,7 +16,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:baby24_io_app/src/pages/role_selection_page.dart';
 import 'package:baby24_io_app/src/pages/main_screen.dart';
-import 'package:baby24_io_app/src/services/device_service.dart';
+import 'package:baby24_io_app/src/services/device.service.dart';
+import 'package:firebase_vertexai/firebase_vertexai.dart';
 
 // 카메라 디바이스용 페이지 (새로 생성)
 class CameraPage extends StatefulWidget {
@@ -137,15 +139,8 @@ class _CameraPageState extends State<CameraPage> {
 
   void _connectSocket() {
     debugPrint('=== Camera: _connectSocket() called ===');
-    String signalingUrl;
-
-    if (kIsWeb) {
-      signalingUrl = 'http://localhost:3000'; // 웹 브라우저용
-    } else if (Platform.isAndroid) {
-      signalingUrl = 'http://10.0.2.2:3000'; // AVD(Android 에뮬레이터)용
-    } else {
-      signalingUrl = 'http://192.168.35.242:3000'; // 실제 안드로이드 기기용
-    }
+    String signalingUrl ='http://192.168.35.242:3333'; // 실제 안드로이드 기기용
+    
 
     debugPrint('=== Camera: signalingUrl = $signalingUrl ===');
     SignallingService.instance.init(
@@ -161,7 +156,8 @@ class _CameraPageState extends State<CameraPage> {
       debugPrint('=== Camera: joinRoom emit with roomId $_roomId ===');
       if (_roomId != null) {
         socket.emit('joinRoom', {
-          'roomId': _roomId
+          'roomId': _roomId,
+          'role': 'camera'
         });
         debugPrint('=== Camera: joinRoom event emitted with data: {"roomId": $_roomId} ===');
       } else {
@@ -169,18 +165,26 @@ class _CameraPageState extends State<CameraPage> {
       }
     });
 
-    socket?.on('disconnect', (_) {
-      debugPrint('=== Camera: Socket disconnected ===');
-      setState(() => _isStreaming = false);
-    });
-
+    // start 이벤트에도 반응하여 UI 업데이트
     socket?.on('start', (_) async {
       debugPrint('=== Camera: start event received ===');
-      _createOffer();
+      setState(() {
+        _isStreaming = true;
+      });
+      debugPrint('=== Camera: Streaming state updated, waiting for create_offer event ===');
+    });
+    
+    // create_offer 이벤트에만 실제 offer 생성
+    socket?.on('create_offer', (_) async {
+      debugPrint('=== Camera: create_offer event received ===');
+      if (_peerConnection != null) {
+        _createOffer();
+      } else {
+        debugPrint('=== Camera: Cannot create offer - peerConnection is null ===');
+      }
     });
 
     socket?.on('offer', (data) async {
-      if (_peerConnection != null) {
         try {
           await _peerConnection!.setRemoteDescription(
             RTCSessionDescription(
@@ -194,11 +198,9 @@ class _CameraPageState extends State<CameraPage> {
           debugPrint('=== Camera: Error setting remote description: $e ===');
           _showError('Error setting up remote connection.');
         }
-      }
     });
 
     socket?.on('answer', (data) async {
-      if (_peerConnection != null) {
         try {
           await _peerConnection!.setRemoteDescription(
             RTCSessionDescription(
@@ -211,12 +213,10 @@ class _CameraPageState extends State<CameraPage> {
           debugPrint('=== Camera: Error setting answer: $e ===');
           _showError('Error setting answer.');
         }
-      }
     });
 
     // 서버로부터 받는 ICE candidate 처리
     socket?.on('iceCandidate', (data) async {
-      if (_peerConnection != null) {
         final candidate = RTCIceCandidate(
           data['candidate'],
           data['sdpMid'],
@@ -224,7 +224,6 @@ class _CameraPageState extends State<CameraPage> {
         );
         await _peerConnection!.addCandidate(candidate);
         debugPrint('=== Camera: Added remote ICE candidate ===');
-      }
     });
 
     // 서버로부터 받는 연결 상태 처리
@@ -238,6 +237,10 @@ class _CameraPageState extends State<CameraPage> {
     socket?.on('error', (data) {
       debugPrint('=== Camera: Error: ${data['message']} ===');
       _showError(data['message']);
+    });
+
+    socket?.on('disconnect', (_) {
+      debugPrint('=== Camera: Socket disconnected ===');
     });
 
     // 소켓 연결 시도
@@ -309,22 +312,33 @@ class _CameraPageState extends State<CameraPage> {
 
     final pc = await createPeerConnection(configuration);
 
+    pc.onIceCandidate = (candidate) {
+      debugPrint('=== Camera: ICE candidate: $candidate ===');
+      SignallingService.instance.socket?.emit('iceCandidate', {
+        'roomId': _roomId,
+        'candidate': candidate.candidate,
+        'sdpMid': candidate.sdpMid,
+        'sdpMLineIndex': candidate.sdpMLineIndex,
+      });
+    };
     pc.onTrack = (event) {
       _handleRemoteStream(event.streams[0]);
       setState(() => _isStreaming = true);
-    }
+    };
 
     _peerConnection = pc;
+    return pc;
   }
 
     void _createOffer() async {
     RTCSessionDescription description = await _peerConnection!
         .createOffer({'offerToReceiveVideo': 1, 'offerToReceiveAudio': 1});
     await _peerConnection!.setLocalDescription(description);
+    debugPrint('=== Camera: Offer sent via Socket.IO ===');
     SignallingService.instance.socket!.emit('offer', {
       'sdp': description.sdp,
       'type': description.type,
-      'room': _roomId,
+      'roomId': _roomId,
     });
   }
 
@@ -335,9 +349,8 @@ class _CameraPageState extends State<CameraPage> {
         'offerToReceiveAudio': 1
       });
       await _peerConnection!.setLocalDescription(description);
-      
       SignallingService.instance.socket?.emit('answer', {
-        'room': _roomId,
+        'roomId': _roomId,
         'type': description.type,
         'sdp': description.sdp
       });
@@ -402,16 +415,19 @@ class _CameraPageState extends State<CameraPage> {
   }
 
   Future<Uint8List?> captureFrame() async {
-    if (_localRTCVideoRenderer.srcObject != null) {
-      try {
-        final image = await _localRTCVideoRenderer.captureFrame();
-        return image;
-      } catch (e) {
-        debugPrint('=== Camera: Error capturing frame: $e ===');
-        return null;
+    try {
+      // 카메라 컨트롤러가 초기화되어 있고 활성화되어 있으면 카메라에서 직접 이미지 캡처
+      if (_controller != null && _controller!.value.isInitialized) {
+        final xFile = await _controller!.takePicture();
+        final file = File(xFile.path);
+        return await file.readAsBytes();
       }
+      // 스트리밍 중이 아니거나 카메라가 초기화되지 않은 경우
+      return null;
+    } catch (e) {
+      debugPrint('=== Camera: Error capturing frame: $e ===');
+      return null;
     }
-    return null;
   }
 
   Future<void> analyzeFrame() async {
@@ -422,12 +438,13 @@ class _CameraPageState extends State<CameraPage> {
       final frameData = await captureFrame();
       if (frameData == null) return;
 
-      final result = await AIService.instance.analyzeImage([InlineDataPart('image/jpeg', frameData)]);
+      // AIService를 통해 이미지 분석
+      final result = await AIService.instance.analyzeImage(frameData);
       debugPrint('=== Camera: AI Analysis Result: $result ===');
       
       if (result == 'face : 0') {
         try {
-          await DeviceService.instance.alertOn("1");
+          await DeviceService().alertOn("1");
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Warning: Child\'s face is not visible!')),
@@ -441,7 +458,12 @@ class _CameraPageState extends State<CameraPage> {
         }
       } else if (result == 'face : 1') {
         try {
-          await DeviceService.instance.alertOff("1");
+          await DeviceService().alertOff("1");
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Child\'s face is visible. Alert turned off.')),
+            );
+          }
         } catch (e) {
           debugPrint('=== Camera: Error turning off alert: $e ===');
           if (mounted) {
@@ -473,10 +495,7 @@ class _CameraPageState extends State<CameraPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_controller == null || !_controller!.value.isInitialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
+    // _controller 체크를 제거하고 무조건 화면 표시
     return WillPopScope(
       onWillPop: () async {
         SignallingService.instance.socket?.disconnect();
@@ -489,7 +508,7 @@ class _CameraPageState extends State<CameraPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Camera Mode'),
+          backgroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -512,22 +531,25 @@ class _CameraPageState extends State<CameraPage> {
                       _localRTCVideoRenderer,
                       objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                     )
-                  : Column(
-                      children: [
-                        Expanded(
-                          child: AspectRatio(
-                            aspectRatio: _controller!.value.aspectRatio,
-                            child: CameraPreview(_controller!),
-                          ),
-                        ),
-                        if (_isStreaming)
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text('Streaming...', style: TextStyle(color: Colors.red)),
-                          ),
-                      ],
-                    ),
+                  : const Center(child: CircularProgressIndicator()),
             ),
+            // 상태 표시
+            if (_isStreaming)
+              Positioned(
+                top: 10,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text('LIVE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ),
             // 컨트롤 버튼
             Positioned(
               left: 0,

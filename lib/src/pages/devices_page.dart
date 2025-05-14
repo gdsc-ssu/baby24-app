@@ -25,7 +25,6 @@ class _DevicesPageState extends State<DevicesPage> {
   void initState() {
     super.initState();
     _deviceService.init();
-    _loadDevices();
   }
 
   Future<void> _loadDevices() async {

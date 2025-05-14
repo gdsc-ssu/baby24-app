@@ -48,10 +48,11 @@ class DeviceService {
         throw Exception('Failed to send alert: ${response.statusCode}');
       }
 
-      for (var device in _devices) {
+      for (var i = 0; i < _devices.length; i++) {
+        var device = _devices[i];
         if (device.category.toLowerCase() == 'light' || 
             device.category.toLowerCase() == 'siren') {
-          device = Device(
+          _devices[i] = Device(
             deviceIdentifier: device.deviceIdentifier,
             name: device.name,
             category: device.category,
@@ -64,30 +65,34 @@ class DeviceService {
       rethrow;
     }
   }
-} 
 
-Future<void> alertOff(String userId) async {
-  try {
-    //final response = await _dio.post('/api/devices/alert/off/$userId');
-    
-    if (response.statusCode != 200) {
-      throw Exception('Failed to send alert off: ${response.statusCode}');
-    }
+  Future<void> alertOff(String userId) async {
+    try {
+      // final response = await _dio.post('/api/devices/alert/off/$userId');
+      
+      // if (response.statusCode != 200) {
+      //   throw Exception('Failed to send alert off: ${response.statusCode}');
+      // }
 
-    for (var device in _devices) {
-      if (device.category.toLowerCase() == 'light' || 
-          device.category.toLowerCase() == 'siren') {
-        device = Device(
-          deviceIdentifier: device.deviceIdentifier,
-          name: device.name,
-          category: device.category,
-          isAlertOn: false,
-        );
+      for (var i = 0; i < _devices.length; i++) {
+        var device = _devices[i];
+        if (device.category.toLowerCase() == 'light' || 
+            device.category.toLowerCase() == 'siren') {
+          _devices[i] = Device(
+            deviceIdentifier: device.deviceIdentifier,
+            name: device.name,
+            category: device.category,
+            isAlertOn: false,
+          );
+        }
       }
-    } 
-  } catch (e) {
-    debugPrint('=== Device: Error sending alert off: $e ===');
-    rethrow;
+    } catch (e) {
+      debugPrint('=== Device: Error sending alert off: $e ===');
+      rethrow;
+    }
   }
+
+  // 디바이스 목록 반환
+  List<Device> get devices => _devices;
 }
 
